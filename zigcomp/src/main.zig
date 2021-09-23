@@ -35,67 +35,72 @@ const Dwarf = struct {
     }
 };
 
-const WarSystem = struct {
-    inner: WarType,
-    ally: *Allocator,
-
-    fn initType() type {
-        comptime var fields: [soldierTypes.len]builtin.TypeInfo.StructField = undefined;
-        inline for (soldierTypes) |st, i| {
-            fields[i].name = @typeName(st);
-            fields[i].field_type = []st;
-            fields[i].default_value = null;
-            fields[i].is_comptime = false;
-            fields[i].alignment = 0;
-        }
-        return @Type(.{
-            .Struct = .{
-                .layout = .Auto,
-                .fields = &fields,
-                .decls = &[_]builtin.TypeInfo.Declaration{},
-                .is_tuple = false,
-            },
-        });
-    }
-
-    const WarType = initType();
-
-    pub fn init(ally: *Allocator, soldiers: u32) !WarSystem {
-        var value: WarType = undefined;
-
-        inline for (soldierTypes) |st| {
-            @field(value, @typeName(st)) = try ally.alloc(st, soldiers / 3);
-            std.mem.set(st, @field(value, @typeName(st)), st.default);
-        }
-        return WarSystem{ .inner = value, .ally = ally };
-    }
-
-    pub fn deinit(self: WarSystem) void {
-        inline for (soldierTypes) |st| {
-            self.ally.free(@field(self.inner, @typeName(st)));
-        }
-    }
-
-    pub fn valueArmy(self: WarSystem) u32 {
-        _ = self;
-        var sum: u32 = 0;
-        const inner = self.inner;
-        inline for (soldierTypes) |st| {
-            for (@field(inner, @typeName(st))) |s| {
-                sum += s.value();
-            }
-        }
-        return sum;
-    }
-};
-
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 
-    var w = try WarSystem.init(&arena.allocator, 3_000_000);
+    var w = try MultiTypeArray(soldierTypes[0..]).init(&arena.allocator, 10_000_000);
     defer w.deinit();
 
-    var v = w.valueArmy();
-    if (v != 13_000_000) std.debug.panic("{s}", .{"Wrong sum"});
+    var v = w.value();
+    if (v != 130_000_000) std.debug.panic("{s}", .{"Wrong sum"});
+}
+
+fn initType(comptime types: []const type) type {
+    comptime var fields: [types.len]builtin.TypeInfo.StructField = undefined;
+    inline for (types) |st, i| {
+        fields[i].name = @typeName(st);
+        fields[i].field_type = []st;
+        fields[i].default_value = null;
+        fields[i].is_comptime = false;
+        fields[i].alignment = 0;
+    }
+    return @Type(.{
+        .Struct = .{
+            .layout = .Auto,
+            .fields = &fields,
+            .decls = &[_]builtin.TypeInfo.Declaration{},
+            .is_tuple = false,
+        },
+    });
+}
+
+pub fn MultiTypeArray(comptime types: []const type) type {
+    return struct {
+        const Self = @This();
+        const InnerType = initType(types);
+
+        inner: InnerType = undefined,
+        ally: *Allocator = undefined,
+
+        pub fn init(ally: *Allocator, count: u32) !Self {
+            var tmp: InnerType = undefined;
+            inline for (types) |st| {
+                @field(tmp, @typeName(st)) = try ally.alloc(st, count);
+                std.mem.set(st, @field(tmp, @typeName(st)), st.default);
+            }
+            return Self{
+                .inner = tmp,
+                .ally = ally,
+            };
+        }
+
+        pub fn deinit(self: Self) void {
+            inline for (types) |st| {
+                self.ally.free(@field(self.inner, @typeName(st)));
+            }
+        }
+
+        pub fn value(self: Self) u32 {
+            _ = self;
+            var sum: u32 = 0;
+            const inner = self.inner;
+            inline for (types) |st| {
+                for (@field(inner, @typeName(st))) |s| {
+                    sum += s.value();
+                }
+            }
+            return sum;
+        }
+    };
 }

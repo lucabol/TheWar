@@ -53,9 +53,9 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 
-    var w = try WarSystem.init(&arena.allocator, 3_000_000);
+    var w = try WarSystem.init(&arena.allocator, 30_000_000);
     defer w.deinit();
 
     var v = w.valueArmy();
-    if (v != 13_000_000) std.debug.panic("{s}", .{"Wrong sum"});
+    if (v != 130_000_000) std.debug.panic("{s}", .{"Wrong sum"});
 }

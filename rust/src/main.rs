@@ -50,10 +50,10 @@ impl WarSystem {
 }
 
 pub fn main() {
-    let w = WarSystem::init(3_000_000);
+    let w = WarSystem::init(30_000_000);
 
     let v = w.value_army();
-    if v != 13_000_000 {
+    if v != 130_000_000 {
         panic!("Wrong Sum");
     };
 }

@@ -27,8 +27,8 @@ sealed class WarSystem {
   }
   
   static int Main() {
-    WarSystem w = new(1_000_000 * 3);
+    WarSystem w = new(30_000_000);
     var v = w.ValueArmy();
-    if (v == 13_000_000) return 0; else throw new Exception("Wrong sum");
+    if (v == 130_000_000) return 0; else throw new Exception("Wrong sum");
   }
 }
