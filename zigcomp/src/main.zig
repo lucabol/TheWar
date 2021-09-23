@@ -92,7 +92,6 @@ pub fn MultiTypeArray(comptime types: []const type) type {
         }
 
         pub fn value(self: Self) u32 {
-            _ = self;
             var sum: u32 = 0;
             const inner = self.inner;
             inline for (types) |st| {
