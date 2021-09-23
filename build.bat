@@ -1,0 +1,9 @@
+cd zig
+call build.bat
+cd ..\zig2
+call build.bat
+cd ..\rust
+call build.bat
+cd ..\csharp
+call build.bat
+cd ..
