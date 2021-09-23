@@ -42,7 +42,7 @@ pub fn main() !void {
     var w = try MultiTypeArray(soldierTypes[0..]).init(&arena.allocator, 10_000_000);
     defer w.deinit();
 
-    var v = w.value();
+    var v = w.value(u32);
     if (v != 130_000_000) std.debug.panic("{s}", .{"Wrong sum"});
 }
 
@@ -91,11 +91,10 @@ pub fn MultiTypeArray(comptime types: []const type) type {
             }
         }
 
-        pub fn value(self: Self) u32 {
-            var sum: u32 = 0;
-            const inner = self.inner;
+        pub fn value(self: Self, comptime T: type) T {
+            var sum: T = @as(T, 0);
             inline for (types) |st| {
-                for (@field(inner, @typeName(st))) |s| {
+                for (@field(self.inner, @typeName(st))) |s| {
                     sum += s.value();
                 }
             }
