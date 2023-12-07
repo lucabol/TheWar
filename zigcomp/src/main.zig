@@ -39,7 +39,7 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 
-    var w = try MultiTypeArray(soldierTypes[0..]).init(&arena.allocator, 10_000_000);
+    var w = try MultiTypeArray(soldierTypes[0..]).init(&arena.allocator(), 10_000_000);
     defer w.deinit();
 
     var v = w.value(u32);
@@ -47,10 +47,10 @@ pub fn main() !void {
 }
 
 fn initType(comptime types: []const type) type {
-    comptime var fields: [types.len]builtin.TypeInfo.StructField = undefined;
-    inline for (types) |st, i| {
+    comptime var fields: [types.len]builtin.Type.StructField = undefined;
+    inline for (types, 0..) |st, i| {
         fields[i].name = @typeName(st);
-        fields[i].field_type = []st;
+        fields[i].type = []st;
         fields[i].default_value = null;
         fields[i].is_comptime = false;
         fields[i].alignment = 0;
@@ -59,7 +59,7 @@ fn initType(comptime types: []const type) type {
         .Struct = .{
             .layout = .Auto,
             .fields = &fields,
-            .decls = &[_]builtin.TypeInfo.Declaration{},
+            .decls = &[_]builtin.Type.Declaration{},
             .is_tuple = false,
         },
     });
@@ -71,13 +71,13 @@ pub fn MultiTypeArray(comptime types: []const type) type {
         const InnerType = initType(types);
 
         inner: InnerType = undefined,
-        ally: *Allocator = undefined,
+        ally: *const Allocator = undefined,
 
-        pub fn init(ally: *Allocator, count: u32) !Self {
+        pub fn init(ally: *const Allocator, count: u32) !Self {
             var tmp: InnerType = undefined;
             inline for (types) |st| {
                 @field(tmp, @typeName(st)) = try ally.alloc(st, count);
-                std.mem.set(st, @field(tmp, @typeName(st)), st.default);
+                @memset(@field(tmp, @typeName(st)), st.default);
             }
             return Self{
                 .inner = tmp,

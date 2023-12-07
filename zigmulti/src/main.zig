@@ -32,7 +32,7 @@ const Dwarf = packed struct {
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
-    var ally = &arena.allocator;
+    var ally = arena.allocator();
 
     var w = std.MultiArrayList(struct { man: Man, elf: Elf, dwarf: Dwarf }){};
     try w.resize(ally, 10_000_000);
@@ -41,9 +41,9 @@ pub fn main() !void {
     var sl = w.slice();
     defer sl.deinit(ally);
 
-    std.mem.set(Man, sl.items(.man), Man.default);
-    std.mem.set(Elf, sl.items(.elf), Elf.default);
-    std.mem.set(Dwarf, sl.items(.dwarf), Dwarf.default);
+    @memset(sl.items(.man), Man.default);
+    @memset(sl.items(.elf), Elf.default);
+    @memset(sl.items(.dwarf), Dwarf.default);
 
     var v: u32 = 0;
     for (sl.items(.man)) |s| v += s.value();

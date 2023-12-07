@@ -9,16 +9,16 @@ const WarSystem = struct {
     men: []Man,
     elves: []Elf,
     dwarves: []Dwarf,
-    ally: *Allocator,
+    ally: *const Allocator,
 
-    pub fn init(ally: *Allocator, soldiers: u32) !WarSystem {
+    pub fn init(ally: *const Allocator, soldiers: u32) !WarSystem {
         const _men = try ally.alloc(Man, soldiers / 3);
         const _elves = try ally.alloc(Elf, soldiers / 3);
         const _dwarves = try ally.alloc(Dwarf, soldiers / 3);
 
-        std.mem.set(Man, _men, .{ .strength = 1, .stamina = 1 });
-        std.mem.set(Elf, _elves, .{ .age = 1, .magic = 1 });
-        std.mem.set(Dwarf, _dwarves, .{ .will = 1 });
+        @memset(_men, .{ .strength = 1, .stamina = 1 });
+        @memset(_elves, .{ .age = 1, .magic = 1 });
+        @memset(_dwarves, .{ .will = 1 });
 
         return WarSystem{
             .ally = ally,
@@ -53,7 +53,7 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 
-    var w = try WarSystem.init(&arena.allocator, 30_000_000);
+    var w = try WarSystem.init(&arena.allocator(), 30_000_000);
     defer w.deinit();
 
     var v = w.valueArmy();

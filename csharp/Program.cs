@@ -1,6 +1,8 @@
-﻿readonly record struct Man(int strength, int stamina);
-readonly record struct Elf(int age, int magic);
-readonly record struct Dwarf(int will);
+﻿using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Sequential, Pack=1)] readonly record struct Man(int strength, int stamina);
+[StructLayout(LayoutKind.Sequential, Pack=1)] readonly record struct Elf(int age, int magic);
+[StructLayout(LayoutKind.Sequential, Pack=1)] readonly record struct Dwarf(int will);
 
 sealed class WarSystem {
   Man[] men;
